@@ -1,0 +1,8 @@
+#"""Configuration file- Contains all general params and hyperparameters"""
+
+files:
+  data_dir: "data"
+  ratings_file: "goodreads_interactions.csv"
+  books_authors_file: "goodreads_book_authors.json"
+  books_works_file: "goodreads_book_works.json"
+  books_genres_file: "goodreads_book_genres_initial.json"
