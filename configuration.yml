@@ -1,8 +1,19 @@
 #"""Configuration file- Contains all general params and hyperparameters"""
 
+# files- Data related to input files locations
 files:
   data_dir: "data"
-  ratings_file: "goodreads_interactions.csv"
-  books_authors_file: "goodreads_book_authors.json"
-  books_works_file: "goodreads_book_works.json"
-  books_genres_file: "goodreads_book_genres_initial.json"
+  ratings_file: "goodreads_rating_p.csv"
+  books_authors_file: "goodreads_authors_np.csv"
+  books_works_file: "goodreads_works.csv"
+  books_genres_file: "goodreads_genres_p.csv"
+  books_file: "goodreads_books_eng3.csv"
+  image_source_dir: "data/images-source"
+  images_list:  "books_images_names.csv"
+
+# columns_lists- order of columns for various processes during the learning
+preprocessed:
+  preprocess_col_order: ["book_id", "work_id", 'title', "num_pages", "publication_year","author", "description", "is_ebook", "series", "image_url","read_count", "text_reviews_count", "ratings_count", "average_rating",
+  "author_id", "name", "public_year_null", "num_pages_null", "authors_ratings_count", "author_average_rating", "genre"]
+  genres_col: [ "poetry", "children", "fantasy, paranormal", "history, historical fiction, biography",
+            "comics, graphic", "non-fiction", "mystery, thriller, crime", "young-adult", "romance" ]
