@@ -7,13 +7,35 @@ files:
   books_authors_file: "goodreads_authors_np.csv"
   books_works_file: "goodreads_works.csv"
   books_genres_file: "goodreads_genres_p.csv"
-  books_file: "goodreads_books_eng3.csv"
+  books_file: "goodreads_books_eng5.csv"
   image_source_dir: "data/images-source"
   images_list:  "books_images_names.csv"
 
+
 # columns_lists- order of columns for various processes during the learning
 preprocessed:
-  preprocess_col_order: ["book_id", "work_id", 'title', "num_pages", "publication_year","author", "description", "is_ebook", "series", "image_url","read_count", "text_reviews_count", "ratings_count", "average_rating",
+  preprocess_col_order: ["book_id", "work_id", 'title', "num_pages", "publication_year","description", "is_ebook", "series", "image_url","read_count", "text_reviews_count", "ratings_count", "average_rating",
   "author_id", "name", "public_year_null", "num_pages_null", "authors_ratings_count", "author_average_rating", "genre"]
-  genres_col: [ "poetry", "children", "fantasy, paranormal", "history, historical fiction, biography",
-            "comics, graphic", "non-fiction", "mystery, thriller, crime", "young-adult", "romance" ]
+  genres_col: [ "poetry", "children", "fantasy, paranormal", "history, historical fiction, biography","comics, graphic", "non-fiction", "mystery, thriller, crime", "young-adult", "romance" ]
+  full_genres_col: [ "poetry", "children", "fantasy, paranormal", "history, historical fiction, biography","comics, graphic", "non-fiction", "mystery, thriller, crime", "young-adult", "romance", "fiction"]
+
+
+hyperparams:
+  tfidf_desc_maxwords: 500
+  bow_title_maxwords: 500
+  logistic_regre_params:
+    C: [0.01, 0.1, 1, 10]
+  random_forest_params:
+      n_estimators: [50]
+      min_samples_leaf: [5,10]
+      max_features: [0.5]
+      max_samples: [0.75]
+  conv_params:
+    image_size: 150
+    batch_size: 64
+    learning_rate:
+
+
+
+
+
