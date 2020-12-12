@@ -2,8 +2,8 @@
 Task :Recognising book genre- based on goodreads dataset
 
 Main notebooks are:
-eda_goodreads.ipynb (include exploration of dataset)
-inference_goodreads.ipynb (learning models)
+- eda_goodreads.ipynb (include exploration of dataset)
+- inference_goodreads.ipynb (learning models)
 
 Report:
 
