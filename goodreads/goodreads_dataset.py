@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 import shutil
-from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, RobustScaler, StandardScaler,PowerTransformer
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, RobustScaler, StandardScaler,PowerTransformer,LabelBinarizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer, TfidfTransformer
 from sklearn.compose import make_column_transformer
@@ -20,7 +20,8 @@ class GoodreadsDataset(object):
     It prepares both the tabular and images datasets.
     After the preprocessing it holds as attributes the scalers and transformers that are used on the train set and stores them for further use on the val and test datasets.
     At certain stages the processed data is stored to files, which will later enables constructing the class from the preprocessed files and by that avoid repeating preprocessing.
-
+    One of the main reasons of forming a class for preporcessing task is to encapsulate all these procedures and also a class
+    holds the different scalers and imputers used in preporcessing task for later use for other data.
     """
     def __init__(self, preprocessed_config, image_source_path, source_images_list, data_path):
         """
@@ -83,10 +84,10 @@ class GoodreadsDataset(object):
         grd.X_test = data[:, :-1]
         grd.y_test = data[:, -1].reshape((-1, 1))
 
-        print(len(grd.X_test))
+        print(f"Loaded train dataset containing: {len(grd.X_train)} samples")
+        print(f"Loaded validation dataset containing: {len(grd.X_val)} samples")
+        print(f"Loaded test dataset containing: {len(grd.X_test)} samples")
 
-        print(len(grd.X_train))
-        print(len(grd.X_val))
 
         return grd
 
@@ -147,9 +148,10 @@ class GoodreadsDataset(object):
         ser = lambda x: 1 if x != '[]' else 0
         self.data["series"] = self.data["series"].apply(ser)
 
-        self.data.drop(columns=["Unnamed: 0", "Unnamed: 0.1", "language_code", "format", "author"], inplace=True)
+        ##DROP THIS
+        self.data.drop(columns=["Unnamed: 0", "language_code", "format", "author"], inplace=True)
 
-        # data=pd.get_dummies(data)
+
 
         authors = self.data[["author_id", "ratings_count", "average_rating"]]
         authors["sum_rating"] = authors["average_rating"] * authors["ratings_count"]
@@ -169,7 +171,7 @@ class GoodreadsDataset(object):
 
         # data.drop(columns=["book_id", "work_id","title", "name","description", "Unnamed: 0", "Unnamed: 0.1","image_url"],inplace=True)
 
-        # data=pd.get_dummies(data)
+
         self.data = self.data[self.preprocessed_config["preprocess_col_order"]]
 
         self.data= self.data.astype(self.preprocess_types)
@@ -199,39 +201,21 @@ class GoodreadsDataset(object):
         dataset_path = os.path.join(self.data_path, dataset_dir_name)
 
         print("dataset path ", dataset_path)
-        if not os.path.exists(dataset_path):
-            os.mkdir(dataset_path)
-        '''
-        images_files_df=pd.DataFrame(columns=["full_filename","book_id"])
-        count=0
-        for filename in os.listdir(source_path):
-            images_files_df=images_files_df.append({"full_filename":filename,"book_id":filename.split('.')[0]},ignore_index=True)
-            count+=1
-            if count==10:
-                break
-        #print(filename)
-        #print(filename.split('.')[0])
+        if os.path.exists(dataset_path):
+            shutil.rmtree(dataset_path)
+        os.mkdir(dataset_path)
 
-    print(images_files_df.head())
-    print(len(images_files_df))
-    '''
         source_images_files_df = pd.read_csv(os.path.join(self.image_source_path, self.source_images_list))
         for ind in range(len(X)):
             label = y[ind]
             book_id = X[ind, book_id_index]
-            # print(f"book:{book_id}")
-            print(book_id)
-            # print(images_files_df.loc[images_files_df["book_id"] == str(book_id), "full_filename"])
             full_book_filename = \
             (source_images_files_df.loc[source_images_files_df["book_id"] == str(book_id), "full_filename"]).values[0]
-            # print(f"book_filename:{full_book_filename}")
 
             label_path = os.path.join(dataset_path, label)
-            # print("label path ", label_path)
             if not os.path.exists(label_path):
                 os.mkdir(label_path)
             image_file = full_book_filename
-            # print(image_file)
             shutil.copyfile(os.path.join(self.image_source_path, image_file), os.path.join(label_path, image_file))
 
     def prepare_train_test_split(self, test_pct, val_pct):
@@ -257,27 +241,24 @@ class GoodreadsDataset(object):
         features = list(self.data.columns)
         features.remove("genre")
 
+        #split to features and labels
         X = self.data[features].values
         y = self.data["genre"].values
 
+        #split the dataset to train, validation and test datasets
         X_train_val, self.X_test, y_train_val, self.y_test = train_test_split(X, y, test_size=test_pct, shuffle=True,
                                                                               stratify=y)
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(X_train_val, y_train_val,
                                                                               test_size=val_pct, shuffle=True,
                                                                               stratify=y_train_val)
 
-        print(len(self.X_test))
-        print(len(X_train_val))
-        print(len(self.X_train))
-        print(len(self.X_val))
+        print(f"Loaded train dataset containing: {len(self.X_train)} samples")
+        print(f"Loaded validation dataset containing: {len(self.X_val)} samples")
+        print(f"Loaded test dataset containing: {len(self.X_test)} samples")
 
         images_files_df = pd.read_csv(os.path.join(self.image_source_path, self.source_images_list))
-        print(self.preprocessed_config["preprocess_col_order"])
-        print(self.preprocessed_config["preprocess_col_order"].index("book_id"))
 
-        # images_files_df = pd.DataFrame(columns=["full_filename", "book_id"])
-        # for filename in os.listdir(image_source_path):
-        #    images_files_df = images_files_df.append({"full_filename": filename, "book_id": filename.split('.')[0]},ignore_index=True)
+
         self.prepare_images_genres('images-train', self.X_train, self.y_train,
                                    self.preprocessed_config["preprocess_col_order"].index("book_id"))
         self.prepare_images_genres('images-val', self.X_val, self.y_val,
@@ -285,6 +266,9 @@ class GoodreadsDataset(object):
         self.prepare_images_genres('images-test', self.X_test, self.y_test,
                                    self.preprocessed_config["preprocess_col_order"].index("book_id"))
 
+        print(f"All images prepared in folders")
+
+        #increase the dimention of labels to be 2 dim array
         self.y_train = self.y_train[:, np.newaxis]
         self.y_val = self.y_val[:, np.newaxis]
         self.y_test = self.y_test[:, np.newaxis]
@@ -293,26 +277,32 @@ class GoodreadsDataset(object):
         dump_datasets_to_pickle(self.data_path, np.hstack((self.X_train, self.y_train)), "train.pkl")
         dump_datasets_to_pickle(self.data_path, np.hstack((self.X_val, self.y_val)), "val.pkl")
         dump_datasets_to_pickle(self.data_path, np.hstack((self.X_test, self.y_test)), "test.pkl")
+        print(f"Dataset splits saved as pickle files")
 
-        return self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test
+        return None
 
-    def prepare_data_for_inference(self, add_text_features=True, tfifd_decr_max_words=1000, bow_title_maxwords=1000, drop_ids=True, drop_author_id=True,target_hot_encoding=False):
+    def prepare_data_for_inference(self, add_text_features=True, descr_maxwords=1000, title_maxwords=1000, drop_ids=True, drop_author_id=True,target_hot_encoding=False):
 
         self.is_prepared_for_inference = True
 
+        #Change the datasets back to Dataframes to be easier to work with
         self.X_train= pd.DataFrame(self.X_train, columns=self.preprocessed_config["preprocess_col_order"][:-1])
         self.X_val = pd.DataFrame(self.X_val, columns=self.preprocessed_config["preprocess_col_order"][:-1])
         self.X_test = pd.DataFrame(self.X_test, columns=self.preprocessed_config["preprocess_col_order"][:-1])
+
+        #change types of values
         preprocess_types_without_label=self.preprocess_types.copy()
         preprocess_types_without_label.pop("genre")
-
         self.X_train=self.X_train.astype(preprocess_types_without_label)
         self.X_val = self.X_val.astype(preprocess_types_without_label)
         self.X_test = self.X_test.astype(preprocess_types_without_label)
+
+        #drop not needed features
         self.X_train.drop(columns=["image_url", "name"], inplace=True)
         self.X_val.drop(columns=["image_url", "name"], inplace=True)
         self.X_test.drop(columns=["image_url", "name"], inplace=True)
 
+        #we save the books id's for later before dropping them (in order to be able to recognise later which book is it.
         self.train_book_ids=self.X_train[["book_id"]]
         self.val_book_ids = self.X_val[["book_id"]]
         self.test_book_ids = self.X_test[["book_id"]]
@@ -320,85 +310,120 @@ class GoodreadsDataset(object):
             self.X_train.drop(columns=["book_id", "work_id"] , inplace=True)
             self.X_val.drop(columns=["book_id", "work_id"], inplace=True)
             self.X_test.drop(columns=["book_id", "work_id"], inplace=True)
+
+        #drop author id if requested.
         if drop_author_id:
             self.X_train.drop(columns=["author_id"], inplace=True)
             self.X_val.drop(columns=["author_id"], inplace=True)
             self.X_test.drop(columns=["author_id"], inplace=True)
 
+        #change target values to one hot encoding if requested using OneHotEncoder
         if target_hot_encoding:
-            genre_ohe = OneHotEncoder()
+            genre_ohe = LabelBinarizer()
             self.y_train = genre_ohe.fit_transform(self.y_train)
-            print(genre_ohe.categories_)
-            self.label_categories = genre_ohe.categories_
+            self.label_classes = genre_ohe.classes_
             self.y_val = genre_ohe.transform(self.y_val)
             self.y_test = genre_ohe.transform(self.y_test)
 
+        # Normalising ratings. Since it has a values between 1-5 we use min max scaler.
         self.books_r_scaler = MinMaxScaler()
         self.X_train["average_rating"] = self.books_r_scaler.fit_transform(self.X_train["average_rating"].values[:, np.newaxis])
         self.X_val["average_rating"]=self.books_r_scaler.transform(self.X_val["average_rating"].values[:, np.newaxis])
         self.X_test["average_rating"] = self.books_r_scaler.transform(self.X_test["average_rating"].values[:, np.newaxis])
 
+        # Normalising authors ratings. Since it has a values between 1-5 we use min max scaler.
         self.author_r_scaler = MinMaxScaler()
         self.X_train["author_average_rating"] = self.author_r_scaler.fit_transform(self.X_train["author_average_rating"].values[:, np.newaxis])
         self.X_val["author_average_rating"] = self.author_r_scaler.transform(self.X_val["author_average_rating"].values[:, np.newaxis])
         self.X_test["author_average_rating"] = self.author_r_scaler.transform(self.X_test["author_average_rating"].values[:, np.newaxis])
 
+        # Normalising publication year. Since it has a values between 1500 and 2021 we use min max scaler.
         self.publ_year_scaler = MinMaxScaler()
         self.X_train["publication_year"] = self.publ_year_scaler.fit_transform(self.X_train["publication_year"].values[:, np.newaxis])
         self.X_val["publication_year"] = self.publ_year_scaler.transform(self.X_val["publication_year"].values[:, np.newaxis])
         self.X_test["publication_year"] = self.publ_year_scaler.transform(self.X_test["publication_year"].values[:, np.newaxis])
 
+        # Normalising number of pages. We use power transformer since it handles outliers well and number of pages is positive
         self.page_count_scaler = PowerTransformer(method='box-cox')
         self.X_train["num_pages"] = self.page_count_scaler.fit_transform(self.X_train["num_pages"].values[:, np.newaxis])
         self.X_val["num_pages"] = self.page_count_scaler.transform(self.X_val["num_pages"].values[:, np.newaxis])
         self.X_test["num_pages"] = self.page_count_scaler.transform(self.X_test["num_pages"].values[:, np.newaxis])
 
-        self.page_count_scaler = PowerTransformer(method='box-cox')
-        self.X_train["ratings_count"] = self.page_count_scaler.fit_transform(self.X_train["ratings_count"].values[:, np.newaxis])
-        self.X_val["ratings_count"] = self.page_count_scaler.transform(self.X_val["ratings_count"].values[:, np.newaxis])
-        self.X_test["ratings_count"] = self.page_count_scaler.transform(self.X_test["ratings_count"].values[:, np.newaxis])
+        # Normalising ratings count. We use power transformer since it handles outliers well and ratings count is positive
+        self.ratings_count_scaler = PowerTransformer(method='box-cox')
+        self.X_train["ratings_count"] = self.ratings_count_scaler.fit_transform(self.X_train["ratings_count"].values[:, np.newaxis])
+        self.X_val["ratings_count"] = self.ratings_count_scaler.transform(self.X_val["ratings_count"].values[:, np.newaxis])
+        self.X_test["ratings_count"] = self.ratings_count_scaler.transform(self.X_test["ratings_count"].values[:, np.newaxis])
 
+        # Normalising read count. We use power transformer since it handles outliers well and read count is positive
         self.books_read_count_scaler = PowerTransformer(method='box-cox')
         self.X_train["read_count"] = self.books_read_count_scaler.fit_transform(self.X_train["read_count"].values[:, np.newaxis])
         self.X_val["read_count"] = self.books_read_count_scaler.transform(self.X_val["read_count"].values[:, np.newaxis])
         self.X_test["read_count"] = self.books_read_count_scaler.transform(self.X_test["read_count"].values[:, np.newaxis])
 
+        # Normalising text reviews count. We use power transformer since it handles outliers well and text reviews count is positive
         self.books_text_r_count_scaler = PowerTransformer(method='box-cox')
         self.X_train["text_reviews_count"] = self.books_text_r_count_scaler.fit_transform(self.X_train["text_reviews_count"].values[:, np.newaxis])
         self.X_val["text_reviews_count"] = self.books_text_r_count_scaler.transform(self.X_val["text_reviews_count"].values[:, np.newaxis])
-        self.X_test["text_reviews_count"] = self.books_read_count_scaler.transform( self.X_test["text_reviews_count"].values[:, np.newaxis])
+        self.X_test["text_reviews_count"] = self.books_text_r_count_scaler.transform( self.X_test["text_reviews_count"].values[:, np.newaxis])
 
+        # Normalising authors ratings count. We use power transformer since it handles outliers well and authors ratings is positive
         self.authors_rate_count_scaler = PowerTransformer(method='box-cox')
         self.X_train["authors_ratings_count"] = self.authors_rate_count_scaler.fit_transform(self.X_train["authors_ratings_count"].values[:, np.newaxis])
-        self.X_val["authors_ratings_count"] = self.books_text_r_count_scaler.transform(self.X_val["authors_ratings_count"].values[:, np.newaxis])
-        self.X_test["authors_ratings_count"] = self.books_read_count_scaler.transform(self.X_test["authors_ratings_count"].values[:, np.newaxis])
+        self.X_val["authors_ratings_count"] = self.authors_rate_count_scaler.transform(self.X_val["authors_ratings_count"].values[:, np.newaxis])
+        self.X_test["authors_ratings_count"] = self.authors_rate_count_scaler.transform(self.X_test["authors_ratings_count"].values[:, np.newaxis])
 
+        #adding text features - tfifd normalization for both description and title
         if add_text_features:
-            self.desc_tfidf = TfidfVectorizer(max_features=tfifd_decr_max_words, stop_words='english')
+            #Handle description
+            # prepare tfidf
+            self.desc_tfidf = TfidfVectorizer(max_features=descr_maxwords, stop_words='english')
             self.desc_tfidf.fit(self.X_train["description"])
-            self.desc_words=['desc_' + word for word in self.desc_tfidf.get_feature_names()]
-            self.X_train[self.desc_words]=self.desc_tfidf.transform(self.X_train["description"]).toarray()
-            self.X_val[self.desc_words] = self.desc_tfidf.transform(self.X_val["description"]).toarray()
-            self.X_test[self.desc_words] = self.desc_tfidf.transform(self.X_test["description"]).toarray()
+            self.tfidf_desc_words=['tfidf_desc_' + word for word in self.desc_tfidf.get_feature_names()]
+            self.X_train[self.tfidf_desc_words]=self.desc_tfidf.transform(self.X_train["description"]).toarray()
+            self.X_val[self.tfidf_desc_words] = self.desc_tfidf.transform(self.X_val["description"]).toarray()
+            self.X_test[self.tfidf_desc_words] = self.desc_tfidf.transform(self.X_test["description"]).toarray()
+
+            # prepare bag of words
+            self.desc_bow = CountVectorizer(max_features=descr_maxwords, stop_words='english')
+            self.desc_bow.fit(self.X_train["description"])
+            self.bow_desc_words = ['bow_desc_' + word for word in self.desc_bow.get_feature_names()]
+            self.X_train[self.bow_desc_words] = self.desc_bow.transform(self.X_train["description"]).toarray()
+            self.X_val[self.bow_desc_words] = self.desc_bow.transform(self.X_val["description"]).toarray()
+            self.X_test[self.bow_desc_words] = self.desc_bow.transform(self.X_test["description"]).toarray()
+
             self.X_train.drop(columns=["description"], inplace=True)
             self.X_val.drop(columns=["description"], inplace=True)
             self.X_test.drop(columns=["description"], inplace=True)
 
-
-            self.title_tfidf = TfidfVectorizer(max_features=bow_title_maxwords, stop_words='english')
+            # Handle title
+            #prepare tfidf
+            self.title_tfidf = CountVectorizer(max_features=title_maxwords, stop_words='english')
             self.title_tfidf.fit(self.X_train["title"])
-            self.title_words = ['title_' + word for word in self.title_tfidf.get_feature_names()]
+            self.title_words = ['tfidf_title_' + word for word in self.title_tfidf.get_feature_names()]
             self.X_train[self.title_words] = self.title_tfidf.transform(self.X_train["title"]).toarray()
             self.X_val[self.title_words] = self.title_tfidf.transform(self.X_val["title"]).toarray()
             self.X_test[self.title_words] = self.title_tfidf.transform(self.X_test["title"]).toarray()
+
+            # prepare bag of words
+            self.title_bow = TfidfVectorizer(max_features=title_maxwords, stop_words='english')
+            self.title_bow.fit(self.X_train["title"])
+            self.bow_title_words= ['bow_title_' + word for word in self.title_bow.get_feature_names()]
+            self.X_train[self.bow_title_words] = self.title_bow.transform(self.X_train["title"]).toarray()
+            self.X_val[self.bow_title_words] = self.title_bow.transform(self.X_val["title"]).toarray()
+            self.X_test[self.bow_title_words] = self.title_bow.transform(self.X_test["title"]).toarray()
+
             self.X_train.drop(columns=["title"], inplace=True)
             self.X_val.drop(columns=["title"], inplace=True)
             self.X_test.drop(columns=["title"], inplace=True)
 
-        print(self.X_train.shape)
+
+        #saves final columns order
         self.inference_col_names=self.X_train.columns
 
-        return self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test
+        print("All datasets prepared for inference")
+
+        return None
 
 
 

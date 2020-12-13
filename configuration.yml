@@ -7,7 +7,7 @@ files:
   books_authors_file: "goodreads_authors_np.csv"
   books_works_file: "goodreads_works.csv"
   books_genres_file: "goodreads_genres_p.csv"
-  books_file: "goodreads_books_eng5.csv"
+  books_file: "goodreads_books_eng-final.csv"
   image_source_dir: "data/images-source"
   images_list:  "books_images_names.csv"
 
@@ -19,21 +19,51 @@ preprocessed:
   genres_col: [ "poetry", "children", "fantasy, paranormal", "history, historical fiction, biography","comics, graphic", "non-fiction", "mystery, thriller, crime", "young-adult", "romance" ]
   full_genres_col: [ "poetry", "children", "fantasy, paranormal", "history, historical fiction, biography","comics, graphic", "non-fiction", "mystery, thriller, crime", "young-adult", "romance", "fiction"]
 
+num_classes: 10
+test_precentage: 0.10
+val_precentage: 0.10
 
 hyperparams:
-  tfidf_desc_maxwords: 500
-  bow_title_maxwords: 500
+  desc_maxwords: 500
+  title_maxwords: 500
   logistic_regre_params:
-    C: [0.01, 0.1, 1, 10]
+    C: [0.1, 1.0, 10.0, 100.0]
   random_forest_params:
-      n_estimators: [50]
+      n_estimators: [300,500]
       min_samples_leaf: [5,10]
-      max_features: [0.5]
-      max_samples: [0.75]
   conv_params:
-    image_size: 150
+    transfer_learning:
+      top_config: [256,64]
+    custom_conv:
+      conv_config: [32, 128, 64]
+      dense_config: [128, 64]
+      kernel: 5
+      pool: 2
     batch_size: 64
-    learning_rate:
+    epochs: 20
+    patience: 3
+    image_size: 224
+    learning_rate: [0.001, 0.003]
+
+  embedding_params:
+    desc_max_voc: 5000
+    title_max_voc:  1000
+    desc_max_len: 350
+    title_max_len: 10
+    batch_size: 32
+    epochs: 20
+    embedding_type: ["spacy", "word2vec"]
+    embedding_dim: 300
+    patience: 3
+    dense_config: [128,64]
+    learning_rate: [0.003, 0.001]
+    kernel_desc: [5, 10]
+    kernel_title: [3,5]
+    word2vecwindow_desc: 10
+    word2vecwindow_title: 3
+    dropout_rates: [0.2, 0.1]
+    conv_filters_desc: 64
+    conv_filters_title: 16
 
 
 
