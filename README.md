@@ -20,7 +20,12 @@ Report:
 Project structure:
 - root
   - data
-    - images-source(Directory-don't delete -this holds dataset images)
+    - images-source(Directory-don't delete -this holds dataset images. It Exists in github)
+      - 1.jpg (image file)
+      - 2.jpg (image file)
+      - ..(230K images)
+      - books_images_names.csv
+      - goodreads_imagestxt.txt
     - images-train (Directory-This directory and content will be created)
     - images-val(Directory-This directory and content will be created) 
     - images-test(Directory-This directory and content will be created)
@@ -30,7 +35,7 @@ Project structure:
     - _init_.py
     - baseline.py
     - conv_goodreads.py
-    - custom_nn_with_ebeddings
+    - custom_nn_with_embeddings
     - results_utils.py
     - utils.py
   - configuration.yml  (Very important -dont delete)= this holds hyperparameters configuration and general parameters
