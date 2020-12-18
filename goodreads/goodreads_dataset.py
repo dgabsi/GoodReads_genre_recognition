@@ -148,8 +148,8 @@ class GoodreadsDataset(object):
         ser = lambda x: 1 if x != '[]' else 0
         self.data["series"] = self.data["series"].apply(ser)
 
-        ##DROP THIS
-        self.data.drop(columns=["Unnamed: 0", "language_code", "format", "author"], inplace=True)
+
+        self.data.drop(columns=["Unnamed: 0"], inplace=True)
 
 
 
@@ -218,7 +218,7 @@ class GoodreadsDataset(object):
             image_file = full_book_filename
             shutil.copyfile(os.path.join(self.image_source_path, image_file), os.path.join(label_path, image_file))
 
-    def prepare_train_test_split(self, test_pct, val_pct):
+    def prepare_train_test_split(self, test_pct, val_pct, seed):
         """
         prepare train, validation and test datasets from the full data.
         Handle preparation for both array and images files data. Images are orgnised in folders according to the dataset type and label.
@@ -247,10 +247,10 @@ class GoodreadsDataset(object):
 
         #split the dataset to train, validation and test datasets
         X_train_val, self.X_test, y_train_val, self.y_test = train_test_split(X, y, test_size=test_pct, shuffle=True,
-                                                                              stratify=y)
+                                                                              stratify=y, random_state=seed)
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(X_train_val, y_train_val,
                                                                               test_size=val_pct, shuffle=True,
-                                                                              stratify=y_train_val)
+                                                                              stratify=y_train_val,random_state=seed)
 
         print(f"Loaded train dataset containing: {len(self.X_train)} samples")
         print(f"Loaded validation dataset containing: {len(self.X_val)} samples")

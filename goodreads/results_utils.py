@@ -27,7 +27,7 @@ def plot_history(history, title):
     plt.figure(figsize=(6,5))
     plt.plot(history["loss"])
     plt.plot(history["val_loss"])
-    plt.xticks(np.arrange(0,20,steps=1))
+    #plt.xticks(np.arrange(0,20,steps=1))
     plt.xlabel("epochs")
     plt.ylabel("loss")
     plt.title(title)

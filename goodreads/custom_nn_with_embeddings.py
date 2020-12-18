@@ -204,12 +204,13 @@ class EmbeddingNNGoodreads(object):
     def save_model(self, models_path,file_name):
         """Saving the model
         """
-        self.model.save(os.path.join(models_path, file_name + ".h5"))
+
+        self.model.save(os.path.join(models_path, file_name), save_format='tf')
 
     def load_from_saved(self, models_path,file_name):
         """Loading the model from file
         """
-        self.model = models.load_model(os.path.join(models_path, file_name + ".h5"))
+        self.model = models.load_model(os.path.join(models_path, file_name))
 
     def predict(self,other_values, desc_values, title_values, author_values):
         """

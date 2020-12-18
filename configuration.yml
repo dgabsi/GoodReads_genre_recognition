@@ -3,11 +3,7 @@
 # files- Data related to input files locations
 files:
   data_dir: "data"
-  ratings_file: "goodreads_rating_p.csv"
-  books_authors_file: "goodreads_authors_np.csv"
-  books_works_file: "goodreads_works.csv"
-  books_genres_file: "goodreads_genres_p.csv"
-  books_file: "goodreads_books_eng-final.csv"
+  books_file: "goodreads_books_eng_f.csv"
   image_source_dir: "data/images-source"
   images_list:  "books_images_names.csv"
 
@@ -34,7 +30,7 @@ hyperparams:
   conv_params:
     transfer_learning:
       top_config: [256,64]
-    custom_conv:
+    simple_conv:
       conv_config: [32, 128, 64]
       dense_config: [128, 64]
       kernel: 5
