@@ -3,7 +3,8 @@
 # files- Data related to input files locations
 files:
   data_dir: "data"
-  books_file: "goodreads_books_eng_f.csv"
+  books_file1: "goodreads_books_eng_f1.csv"
+  books_file2: "goodreads_books_eng_f2.csv"
   image_source_dir: "data/images-source"
   images_list:  "books_images_names.csv"
 
