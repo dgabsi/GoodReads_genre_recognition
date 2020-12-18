@@ -4,13 +4,14 @@ We will use different features-including text features(description and title), i
 and other numerical features(such as number of pages, ratings and more) in order to recognise a book genre.
 
 # Important: Data files are in github (under data directory)
+## You should take all content of data directory from github (under data)
 
 
 ### github- dgabsi/701project
 (updates were made from danielaneuralx which is my working github but its all mine.)
 
-Main notebooks are:
-Please run them in that order(because the first preporcess the data)
+### Main notebooks are:
+### Please run them in that order(because the first preporcess the data)
 - eda_goodreads.ipynb (include exploration of dataset)
 - inference_goodreads.ipynb (learning models)
 
