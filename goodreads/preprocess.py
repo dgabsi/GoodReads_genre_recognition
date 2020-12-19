@@ -5,7 +5,7 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 import shutil
 
-
+''''
 def preprocess(data, preprocessed_config):
     """
     Preprocess books data.
@@ -103,7 +103,7 @@ def prepare_images_genres(images_source_path, source_images_files_df, data_path,
     print("dataset path ", dataset_path)
     if not os.path.exists(dataset_path):
         os.mkdir(dataset_path)
-    '''
+    
     images_files_df=pd.DataFrame(columns=["full_filename","book_id"])
     count=0
     for filename in os.listdir(source_path):
@@ -116,7 +116,6 @@ def prepare_images_genres(images_source_path, source_images_files_df, data_path,
 
     print(images_files_df.head())
     print(len(images_files_df))
-    '''
     for ind in range(len(X)):
         label = y[ind]
         book_id = X[ind, book_id_index]
@@ -167,3 +166,4 @@ def prepare_train_test_split(X, y, test_pct, val_pct, image_source_path, source_
     prepare_images_genres(image_source_path, images_files_df, data_path, 'images-test', X_test, y_test, preprocessed_col.index("book_id"))
 
     return X_train, y_train, X_val, y_val, X_test, y_test
+'''''

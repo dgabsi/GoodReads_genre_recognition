@@ -123,6 +123,7 @@ class GoodreadsDataset(object):
         self.data.loc[self.data["num_pages"].isnull(), "num_pages_null"] = 1
         self.data["num_pages"].fillna(self.data["num_pages"].median(), inplace=True)
 
+        #Handle genres-taking the genre having the max "weight"
         genres = self.preprocessed_config["genres_col"]
         self.data.set_index("book_id", inplace=True)
         genres_df = self.data[genres]
@@ -130,8 +131,10 @@ class GoodreadsDataset(object):
         self.data = self.data.join(genres_df["genre"])
         self.data.reset_index(inplace=True)
 
+        #If no genre found other than fiction, than set genre to fiction
         self.data.loc[(self.data["genre"].isnull() & self.data["fiction"] > 0), ["genre"]] = "fiction"
 
+        #Drop null genres
         self.data.dropna(subset=["genre"], inplace=True)
         genres = genres + ["fiction"]
         self.data.drop(columns=genres, inplace=True)
@@ -142,9 +145,11 @@ class GoodreadsDataset(object):
         # bigger_1 = (lambda x : 1 if x>1 else 0)
         # data.loc[:,genres]=data.loc[:,genres].applymap(bigger_1)
 
+        #Change ebook to 1/0
         is_ebook = (lambda x: 1 if x else 0)
         self.data.loc[:, "is_ebook"] = self.data.loc[:, "is_ebook"].apply(is_ebook)
 
+        # Change series indicator to 1/0
         ser = lambda x: 1 if x != '[]' else 0
         self.data["series"] = self.data["series"].apply(ser)
 
@@ -152,7 +157,7 @@ class GoodreadsDataset(object):
         self.data.drop(columns=["Unnamed: 0"], inplace=True)
 
 
-
+        #Prepare rating of authors
         authors = self.data[["author_id", "ratings_count", "average_rating"]]
         authors["sum_rating"] = authors["average_rating"] * authors["ratings_count"]
         authors = authors.groupby(["author_id"])["ratings_count", "sum_rating"].sum()
@@ -174,9 +179,10 @@ class GoodreadsDataset(object):
 
         self.data = self.data[self.preprocessed_config["preprocess_col_order"]]
 
+        # turn columns to correct data types
         self.data= self.data.astype(self.preprocess_types)
 
-        # turn columns to correct data types
+        # dump preprocessed data to pickle file
         from . import dump_datasets_to_pickle, load_datasets_from_pickle
         dump_datasets_to_pickle(self.data_path, self.data, "data.pkl")
 
@@ -205,6 +211,7 @@ class GoodreadsDataset(object):
             shutil.rmtree(dataset_path)
         os.mkdir(dataset_path)
 
+        #copy images files according to genre . creates genre subfolders under the dataset directory
         source_images_files_df = pd.read_csv(os.path.join(self.image_source_path, self.source_images_list))
         for ind in range(len(X)):
             label = y[ind]
@@ -282,6 +289,14 @@ class GoodreadsDataset(object):
         return None
 
     def prepare_data_for_inference(self, add_text_features=True, descr_maxwords=1000, title_maxwords=1000, drop_ids=True, drop_author_id=True,target_hot_encoding=False):
+        """
+            Prepare the dataset for inferenc eaccording to params
+            Includes droping unnecessry columns
+            Scaling numerical features
+            Create tf-idf and BOW features for title and description
+                  preprocessed_config-dictionary containing necessary configuration data such requested order of column  in output data
+            Return value: preprocessed books data (DataFrame)
+        """
 
         self.is_prepared_for_inference = True
 

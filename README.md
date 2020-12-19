@@ -56,6 +56,8 @@ Needs packages:
 - gensim
 - spacy
 - nltk
+- pickle
+- shutil 
     
     
 should run :

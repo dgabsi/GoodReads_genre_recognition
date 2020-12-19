@@ -10,6 +10,9 @@ from sklearn.metrics import accuracy_score
 
 
 def report_result(y_predicted,y_true,classifier_name,labels, title):
+    """"
+    Print a classification report and a confusion matrix
+    """
 
     print("{} classifer".format(classifier_name))
     print("Accuracy: {:.3f}".format(accuracy_score(y_true, y_predicted)))
@@ -23,6 +26,9 @@ def report_result(y_predicted,y_true,classifier_name,labels, title):
     plt.show()
 
 def plot_history(history, title):
+    """"
+        Plot history of training. Showing loss train against validation
+    """
 
     plt.figure(figsize=(6,5))
     plt.plot(history["loss"])
